@@ -254,39 +254,52 @@ class Visualizer:
         for drone in drones:
 
             if drone["finished"]:
-                continue
 
-            current_zone = drone["path"][
-                drone["position"]
+                zone_name = self.graph.end
+                color = (0, 220, 0)
+
+            else:
+
+                zone_name = drone["path"][
+                    drone["position"]
+                ]
+
+                color = (255, 255, 255)
+
+            zone = self.graph.zones[
+                zone_name
             ]
 
-            zone = self.graph.zones[current_zone]
-
-            x, y = self.graph_position(zone)
+            x, y = self.graph_position(
+                zone
+            )
 
             count = offsets.get(
-                current_zone,
+                zone_name,
                 0,
             )
 
-            offsets[current_zone] = count + 1
+            offsets[zone_name] = count + 1
 
+            #
+            # Better distribution around node
+            #
             dx = (
-                (count % 4) - 2
-            ) * 10
+                (count % 5) - 2
+            ) * 12
 
             dy = (
-                count // 4
-            ) * 10
+                count // 5
+            ) * 12
 
             pygame.draw.circle(
                 self.screen,
-                (255, 255, 255),
+                color,
                 (
                     x + dx,
                     y + dy,
                 ),
-                7,
+                8,
             )
 
             text = self.font.render(

@@ -223,7 +223,7 @@ class Simulator:
         )
 
         #
-        # INITIAL STATE
+        # Initial state
         #
         visualizer.draw_turn(
             0,

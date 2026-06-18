@@ -7,6 +7,25 @@ class Scheduler:
 
         self.graph = graph
 
+        #
+        # Persistent reservations
+        #
+        self.edge_reservations = defaultdict(int)
+
+    def update_reservations(self):
+
+        expired = []
+
+        for edge in self.edge_reservations:
+
+            self.edge_reservations[edge] -= 1
+
+            if self.edge_reservations[edge] <= 0:
+                expired.append(edge)
+
+        for edge in expired:
+            del self.edge_reservations[edge]
+
     def get_occupancy(self, drones):
 
         occupancy = defaultdict(int)
@@ -54,6 +73,12 @@ class Scheduler:
         edge_usage,
     ):
 
+        #
+        # Persistent reservation
+        #
+        if edge in self.edge_reservations:
+            return False
+
         return (
             edge_usage[edge]
             < connection.max_capacity
@@ -70,8 +95,7 @@ class Scheduler:
             return None
 
         #
-        # Drone already travelling through
-        # a restricted zone
+        # Currently travelling
         #
         if drone["travel_remaining"] > 0:
 
@@ -120,7 +144,6 @@ class Scheduler:
         for neigh, conn in self.graph.adj[source]:
 
             if neigh == destination:
-
                 connection = conn
                 break
 
@@ -136,9 +159,6 @@ class Scheduler:
             )
         )
 
-        #
-        # Capacity checks
-        #
         if not self.can_enter_zone(
             destination,
             occupancy,
@@ -152,19 +172,9 @@ class Scheduler:
         ):
             return None
 
-        #
-        # Reserve destination
-        #
+        occupancy[source] -= 1
         occupancy[destination] += 1
 
-        #
-        # Drone leaves source
-        #
-        occupancy[source] -= 1
-
-        #
-        # Reserve edge
-        #
         edge_usage[edge] += 1
 
         zone = self.graph.zones[
@@ -172,24 +182,27 @@ class Scheduler:
         ]
 
         #
-        # Restricted zone
+        # Restricted movement
         #
         if zone.zone_type == "restricted":
 
             drone["travel_remaining"] = 1
+
+            #
+            # Reserve edge for next turn
+            #
+            self.edge_reservations[
+                edge
+            ] = 1
 
             return (
                 drone["id"],
                 f"{source}-{destination}",
             )
 
-        #
-        # Normal movement
-        #
         drone["position"] += 1
 
         if destination == self.graph.end:
-
             drone["finished"] = True
 
         return (
@@ -204,6 +217,8 @@ class Scheduler:
         turn,
     ):
 
+        self.update_reservations()
+
         all_drones = (
             drones_p1 + drones_p2
         )
@@ -216,9 +231,6 @@ class Scheduler:
 
         moves = []
 
-        #
-        # Path 1 priority
-        #
         for drone in drones_p1:
 
             result = self.move_drone(
@@ -230,9 +242,6 @@ class Scheduler:
             if result:
                 moves.append(result)
 
-        #
-        # Path 2 second
-        #
         for drone in drones_p2:
 
             result = self.move_drone(

@@ -388,4 +388,3 @@ class Visualizer:
         )
 
         pygame.display.flip()
-

@@ -4,9 +4,10 @@ run:
 
 clean:
 	rm -rf __pycache__
+	rm -rf .mypy_cache
 
 install:
-	pip install flake8 mypy
+	pip install flake8 mypy pygame
 
 lint:
 	flake8 .

@@ -15,4 +15,5 @@ connection: slow_path1-slow_path2
 connection: slow_path2-merge_point
 connection: fast_junction-fast_path
 connection: fast_path-merge_point
+#connection: merge_point-fast_path
 connection: merge_point-goal [max_link_capacity=2]

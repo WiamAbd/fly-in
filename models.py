@@ -24,7 +24,6 @@ class Graph:
     start: str = ""
     end: str = ""
 
-    zones: dict[str, Zone] = field(default_factory=dict)
+    zones: dict[str, Zone] = field(default_factory=lambda: {})
 
-    # adjacency[node] = [(neighbor, Connection)]
-    adj: dict[str, list[tuple[str, Connection]]] = field(default_factory=dict)
+    adj: dict[str, list[tuple[str, Connection]]] = field(default_factory=lambda: {})

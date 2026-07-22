@@ -35,12 +35,6 @@ Python 3.10+
 Install dependencies:
 
 ```bash
-pip install pygame
-```
-
-or
-
-```bash
 make install
 ```
 

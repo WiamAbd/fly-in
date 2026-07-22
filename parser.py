@@ -10,6 +10,16 @@ VALID_ZONE_TYPES = {
     "blocked",
 }
 
+ZONE_METADATA = {
+    "color",
+    "zone",
+    "max_drones"
+
+}
+CONNECTION_METADATA = {
+    "max_link_capacity"
+}
+
 
 class MapParser:
 
@@ -18,7 +28,7 @@ class MapParser:
         graph = Graph()
 
         seen_connections = set()
-
+        first_directive_seen = False
         with open(filename, "r", encoding="utf-8") as file:
 
             for line_num, raw_line in enumerate(file, start=1):
@@ -28,6 +38,13 @@ class MapParser:
                 if not line or line.startswith("#"):
                     continue
 
+                if not first_directive_seen:
+                    first_directive_seen = True
+
+                    if not line.startswith("nb_drones:"):
+                        raise ValueError(
+                            "nb_drones must be the first directive"
+                        )
                 try:
 
                     if line.startswith("nb_drones:"):
@@ -109,6 +126,10 @@ class MapParser:
                     "=",
                     1,
                 )
+                if key not in ZONE_METADATA:
+                    raise ValueError(
+                        f"invalid zone metadata '{key}'"
+                    )
 
                 metadata[key] = value
 
@@ -226,6 +247,10 @@ class MapParser:
                     "=",
                     1,
                 )
+                if key not in CONNECTION_METADATA:
+                    raise ValueError(
+                        f"invalid connection metadata '{key}'"
+                    )
 
                 metadata[key] = value
 

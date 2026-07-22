@@ -8,9 +8,12 @@ def main():
     if len(sys.argv) != 2:
         print("Usage: python main.py <map_file>")
         return
-    graph = MapParser().parse(sys.argv[1])
-    sim = Simulator(graph)
-    sim.run()
+    try:
+        graph = MapParser().parse(sys.argv[1])
+        sim = Simulator(graph)
+        sim.run()
+    except ValueError as e:
+        print("ERROR:",e)
 
 
 if __name__ == "__main__":

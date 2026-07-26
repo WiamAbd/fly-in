@@ -10,13 +10,13 @@ VALID_ZONE_TYPES = {
     "blocked",
 }
 
-ZONE_METADATA = {
+VALID_ZONE_METADATA = {
     "color",
     "zone",
     "max_drones"
 
 }
-CONNECTION_METADATA = {
+VALID_CONNECTION_METADATA = {
     "max_link_capacity"
 }
 
@@ -26,20 +26,20 @@ class MapParser:
     def parse(self, filename: str) -> Graph:
 
         graph = Graph()
-
         seen_connections = set()
-        first_directive_seen = False
+        nb_drones_check = False
+
         with open(filename, "r", encoding="utf-8") as file:
 
-            for line_num, raw_line in enumerate(file, start=1):
+            for line_num, raw_line in enumerate(file):
 
                 line = raw_line.strip()
 
                 if not line or line.startswith("#"):
                     continue
 
-                if not first_directive_seen:
-                    first_directive_seen = True
+                if not nb_drones_check:
+                    nb_drones_check = True
 
                     if not line.startswith("nb_drones:"):
                         raise ValueError(
@@ -91,7 +91,7 @@ class MapParser:
                 except ValueError as exc:
 
                     raise ValueError(
-                        f"Line {line_num}: {exc}"
+                        f"Line {line_num + 1}: {exc}"
                     ) from exc
 
         self._validate_graph(graph)
@@ -110,8 +110,14 @@ class MapParser:
             r"\[(.*?)\]",
             line,
         )
+        
 
         if meta_match:
+
+            if (line[meta_match.end():].strip()):
+                raise ValueError(
+                "unexpected content after metadata"
+            )
 
             metadata_text = meta_match.group(1)
 
@@ -126,7 +132,11 @@ class MapParser:
                     "=",
                     1,
                 )
-                if key not in ZONE_METADATA:
+                if key in metadata:
+                    raise ValueError(
+                        f"duplicate metadata '{key}'"
+                    )
+                if key not in VALID_ZONE_METADATA:
                     raise ValueError(
                         f"invalid zone metadata '{key}'"
                     )
@@ -159,8 +169,13 @@ class MapParser:
                 f"duplicate zone '{name}'"
             )
 
-        x = int(parts[2])
-        y = int(parts[3])
+        try:
+            x = int(parts[2])
+            y = int(parts[3])
+        except ValueError:
+            raise ValueError(
+                "zone coordinates must be integers"
+            )
 
         zone_type = metadata.get(
             "zone",
@@ -234,6 +249,11 @@ class MapParser:
 
         if meta_match:
 
+            if line[meta_match.end():].strip():
+                raise ValueError(
+                    "unexpected content after metadata"
+                )
+
             metadata_text = meta_match.group(1)
 
             for token in metadata_text.split():
@@ -247,7 +267,11 @@ class MapParser:
                     "=",
                     1,
                 )
-                if key not in CONNECTION_METADATA:
+                if key in metadata:
+                    raise ValueError(
+                        f"duplicate metadata '{key}'"
+                    )
+                if key not in VALID_CONNECTION_METADATA:
                     raise ValueError(
                         f"invalid connection metadata '{key}'"
                     )

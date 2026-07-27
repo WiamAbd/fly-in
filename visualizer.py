@@ -177,7 +177,7 @@ class Visualizer:
 
             x1, y1 = self.graph_position(zone1)
 
-            for destination, _ in neighbors:
+            for destination, connection in neighbors:
 
                 edge = tuple(
                     sorted(
@@ -203,6 +203,22 @@ class Visualizer:
                     (x1, y1),
                     (x2, y2),
                     2,
+                )
+                mid_x = (x1 + x2) // 2
+                mid_y = (y1 + y2) // 2
+
+                capacity = self.font.render(
+                    f"{connection.max_capacity}",
+                    True,
+                    (0, 0, 255),
+                )
+
+                self.screen.blit(
+                    capacity,
+                    (
+                        mid_x - capacity.get_width() // 2,
+                        mid_y - capacity.get_height() // 2,
+                    ),
                 )
 
     def draw_nodes(self):
@@ -231,21 +247,21 @@ class Visualizer:
                 2,
             )
 
-            short_name = zone.name[:10]
+            zone_type = zone.zone_type[0].upper()
 
             label = self.font.render(
-                short_name,
+                f"{zone.name} ({zone_type},{zone.max_drones})",
                 True,
                 (0, 0, 0),
             )
-
+                    
             self.screen.blit(
-                label,
-                (
-                    x - label.get_width() // 2,
-                    y - 42,
-                ),
-            )
+                    label,
+                    (
+                        x - label.get_width() // 2,
+                        y - 42,
+                    ),
+                )
 
     def draw_drones(self, drones):
 
@@ -256,7 +272,48 @@ class Visualizer:
             if drone["finished"]:
 
                 zone_name = self.graph.end
+                position_key = zone_name
+
+                zone = self.graph.zones[zone_name]
+
+                x, y = self.graph_position(zone)
+
                 color = (0, 220, 0)
+
+            elif drone["travel_remaining"] > 0:
+
+                source_name = drone["path"][
+                    drone["position"]
+                ]
+
+                destination_name = drone["path"][
+                    drone["position"] + 1
+                ]
+
+                position_key = (
+                    f"{source_name}->{destination_name}"
+                )
+
+                source = self.graph.zones[
+                    source_name
+                ]
+
+                destination = self.graph.zones[
+                    destination_name
+                ]
+
+                x1, y1 = self.graph_position(
+                    source
+                )
+
+                x2, y2 = self.graph_position(
+                    destination
+                )
+
+                x = (x1 + x2) //2
+                y = (y1 + y2) //2
+
+                color = (255, 255, 255)
 
             else:
 
@@ -264,34 +321,46 @@ class Visualizer:
                     drone["position"]
                 ]
 
+                position_key = zone_name
+
+                zone = self.graph.zones[
+                    zone_name
+                ]
+
+                x, y = self.graph_position(
+                    zone
+                )
+
                 color = (255, 255, 255)
 
-            zone = self.graph.zones[
-                zone_name
-            ]
-
-            x, y = self.graph_position(
-                zone
-            )
-
             count = offsets.get(
-                zone_name,
+                position_key,
                 0,
             )
 
-            offsets[zone_name] = count + 1
+            offsets[position_key] = count + 1
 
             #
-            # Better distribution around node
+            # Better distribution around node/connection
             #
-            dx = (
-                (count % 5) - 2
-            ) * 12
+            if count == 0:
+                dx = 0
+                dy = 0
+            else:
+                offsets_pos = [
+                    (-12, 0),
+                    (12, 0),
+                    (0, -12),
+                    (0, 12),
+                    (-12, -12),
+                    (12, -12),
+                    (-12, 12),
+                    (12, 12),
+                ]
 
-            dy = (
-                count // 5
-            ) * 12
-
+                dx, dy = offsets_pos[
+                    (count - 1) % len(offsets_pos)
+                ]
             pygame.draw.circle(
                 self.screen,
                 color,

@@ -212,37 +212,20 @@ class Scheduler:
 
     def schedule_turn(
         self,
-        drones_p1,
-        drones_p2,
-        turn,
+        drones,
     ):
 
         self.update_reservations()
 
-        all_drones = (
-            drones_p1 + drones_p2
-        )
-
         occupancy = self.get_occupancy(
-            all_drones
+            drones
         )
 
         edge_usage = self.get_edge_usage()
 
         moves = []
 
-        for drone in drones_p1:
-
-            result = self.move_drone(
-                drone,
-                occupancy,
-                edge_usage,
-            )
-
-            if result:
-                moves.append(result)
-
-        for drone in drones_p2:
+        for drone in drones:
 
             result = self.move_drone(
                 drone,

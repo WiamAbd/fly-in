@@ -6,8 +6,6 @@ from scheduler import Scheduler
 
 class Simulator:
 
-    EDGE_PENALTY = 10
-
     def __init__(self, graph):
         self.graph = graph
 
@@ -26,13 +24,7 @@ class Simulator:
 
         return 1
 
-    def dijkstra(
-        self,
-        edge_penalties=None,
-    ):
-
-        if edge_penalties is None:
-            edge_penalties = {}
+    def dijkstra(self):
 
         heap = [
             (
@@ -79,26 +71,11 @@ class Simulator:
                 ):
                     continue
 
-                edge = tuple(
-                    sorted(
-                        (
-                            node,
-                            neighbor,
-                        )
-                    )
-                )
-
-                penalty = edge_penalties.get(
-                    edge,
-                    0,
-                )
-
                 new_cost = (
                     cost
                     + self.zone_cost(
                         neighbor
                     )
-                    + penalty
                 )
 
                 heappush(
@@ -112,107 +89,33 @@ class Simulator:
 
         return float("inf"), []
 
-    def two_best_paths(self):
-
-        cost1, path1 = self.dijkstra()
-
-        penalties = {}
-
-        for i in range(
-            len(path1) - 1
-        ):
-
-            edge = tuple(
-                sorted(
-                    (
-                        path1[i],
-                        path1[i + 1],
-                    )
-                )
-            )
-
-            penalties[
-                edge
-            ] = self.EDGE_PENALTY
-
-        cost2, path2 = self.dijkstra(
-            penalties
-        )
-
-        if not path2:
-            path2 = path1
-            cost2 = cost1
-
-        return (
-            (cost1, path1),
-            (cost2, path2),
-        )
 
     def create_drones(self):
 
-        (
-            (cost1, path1),
-            (cost2, path2),
-        ) = self.two_best_paths()
+        _, path = self.dijkstra()
 
-        drones_p1 = []
-        drones_p2 = []
-
-        load1 = 0
-        load2 = 0
+        drones = []
 
         for drone_id in range(
             1,
             self.graph.drones + 1,
         ):
 
-            score1 = (
-                cost1
-                + load1 * 2
-            )
-
-            score2 = (
-                cost2
-                + load2 * 2
-            )
-
             drone = {
                 "id": drone_id,
                 "position": 0,
                 "travel_remaining": 0,
                 "finished": False,
+                "path": path,
             }
 
-            if score1 <= score2:
+            drones.append(drone)
 
-                drone["path"] = path1
-
-                drones_p1.append(
-                    drone
-                )
-
-                load1 += 1
-
-            else:
-
-                drone["path"] = path2
-
-                drones_p2.append(
-                    drone
-                )
-
-                load2 += 1
-
-        return (
-            drones_p1,
-            drones_p2,
-        )
+        return drones
 
     def run(self):
 
-        drones_p1, drones_p2 = (
-            self.create_drones()
-        )
+        drones = self.create_drones()
 
         scheduler = Scheduler(
             self.graph
@@ -227,7 +130,7 @@ class Simulator:
         #
         visualizer.draw_turn(
             0,
-            drones_p1 + drones_p2,
+            drones,
         )
 
         visualizer.wait_for_next_turn()
@@ -239,9 +142,7 @@ class Simulator:
             visualizer.process_events()
 
             moves = scheduler.schedule_turn(
-                drones_p1,
-                drones_p2,
-                turn,
+                drones,
             )
 
             if moves:
@@ -259,14 +160,12 @@ class Simulator:
 
             visualizer.draw_turn(
                 turn,
-                drones_p1 + drones_p2,
+                drones,
             )
 
             all_finished = all(
                 drone["finished"]
-                for drone in (
-                    drones_p1 + drones_p2
-                )
+                for drone in drones
             )
 
             if all_finished:

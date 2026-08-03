@@ -1,28 +1,50 @@
-*This project has been created as part of the 42 curriculum by <wabdella>*
+*This project has been created as part of the 42 curriculum by <your_login>.*
 
-# Fly-In
+# Fly-in
 
 ## Description
 
-Fly-In is a drone routing simulator written in Python.
+Fly-in is a drone routing simulator whose objective is to transport a fleet of drones from a unique start hub to a unique end hub while minimizing the total number of simulation turns.
 
-The goal of the project is to route a fleet of drones from a unique **start hub** to a unique **end hub** while respecting:
+The environment is represented as a graph where:
+- Vertices represent zones (normal, priority, restricted or blocked).
+- Edges represent bidirectional connections between zones.
+- Each zone and connection may have capacity constraints.
+- Drones move simultaneously while respecting all movement and occupancy rules.
 
-* zone capacities (`max_drones`)
-* connection capacities (`max_link_capacity`)
-* restricted zones
-* blocked zones
-* priority zones
-* simultaneous movement constraints
+The project implements:
+- A custom graph representation.
+- A parser for the Fly-in map format.
+- A pathfinding system based on Dijkstra and Yen's algorithm.
+- A turn-based scheduler that manages conflicts and capacities.
+- A graphical visualization of the simulation using Pygame.
 
-The objective is to minimize the total number of simulation turns required to deliver all drones.
+---
 
-The map is represented as a graph where:
+# Project Architecture
 
-* vertices are hubs/zones
-* edges are connections between hubs
-
-The program parses a map file, computes efficient routes, schedules drone movements turn by turn, and visualizes the simulation using Pygame.
+```
+             Map File
+                 │
+                 ▼
+             Map Parser
+                 │
+                 ▼
+             Graph Model
+                 │
+                 ▼
+            Pathfinding
+        (Dijkstra + Yen)
+                 │
+                 ▼
+        Drone Assignment
+                 │
+                 ▼
+             Scheduler
+                 │
+                 ▼
+            Visualization
+```
 
 ---
 
@@ -30,110 +52,51 @@ The program parses a map file, computes efficient routes, schedules drone moveme
 
 ## Requirements
 
-Python 3.10+
+- Python 3.10+
+- pygame
 
-Install dependencies:
+Install pygame:
 
 ```bash
-make install
+pip install pygame
 ```
 
 ---
 
 ## Run
 
+```bash
+python main.py maps/example.txt
+```
+
 Example:
 
 ```bash
-python main.py maps/easy/01_linear_path.txt
-```
-
-or
-
-```bash
-make run MAP=maps/easy/01_linear_path.txt
+python main.py maps/easy_1.txt
 ```
 
 ---
 
-## Controls
+## Input Format
 
-### Visualization
-
-The simulation opens a Pygame window.
-
-Controls:
-
-| Key   | Action            |
-| ----- | ----------------- |
-| SPACE | Execute next turn |
-| ENTER | Execute next turn |
-| A     | Autoplay          |
-| ESC   | Quit              |
-
----
-
-# Project Architecture
+Example:
 
 ```text
-main.py
-    ↓
-parser.py
-    ↓
-models.py
-    ↓
-simulator.py
-    ↓
-scheduler.py
-    ↓
-visualizer.py
-```
+nb_drones: 5
 
----
+start_hub: start 0 0 [color=green]
 
-# Data Structures
+hub: zone1 2 0
 
-## Zone
+hub: zone2 4 0 [zone=restricted]
 
-Represents a node in the graph.
+end_hub: goal 6 0
 
-Attributes:
+connection: start-zone1
 
-```python
-name
-x
-y
-zone_type
-color
-max_drones
-```
+connection: zone1-zone2
 
----
-
-## Connection
-
-Represents an edge.
-
-Attributes:
-
-```python
-source
-destination
-max_capacity
-```
-
----
-
-## Graph
-
-Stores:
-
-```python
-zones
-adjacency list
-start
-end
-number of drones
+connection: zone2-goal
 ```
 
 ---
@@ -142,106 +105,82 @@ number of drones
 
 ## 1. Parsing
 
-The parser reads the map file and builds a graph.
+The parser reads the map file and validates:
 
-Example:
+- number of drones
+- unique start and end hubs
+- unique zone names
+- unique connections
+- metadata
+- capacities
+- zone types
+- syntax
 
-```text
-start
- |
-A
- |
-goal
-```
+The parser constructs a custom graph structure composed of:
 
-becomes:
-
-```python
-graph.zones
-graph.adj
-```
-
-The parser validates:
-
-* duplicate hubs
-* duplicate connections
-* invalid zone types
-* invalid capacities
-* missing start/end hubs
+- Graph
+- Zone
+- Connection
 
 ---
 
 ## 2. Pathfinding
 
-### Why Dijkstra?
+The project combines two routing algorithms.
 
-Breadth First Search assumes every movement has the same cost.
+### Dijkstra
 
-This project contains:
+Dijkstra is used to compute the shortest path according to movement cost.
 
-| Zone Type  | Cost |
-| ---------- | ---- |
-| normal     | 1    |
-| priority   | 0.9  |
-| restricted | 2    |
-| blocked    | ∞    |
+Zone costs are:
 
-Because movement costs differ, Dijkstra is used.
+| Zone | Cost |
+|------|-----:|
+| Normal | 1 |
+| Priority | 0.9 |
+| Restricted | 2 |
+| Blocked | ∞ |
 
-### Dijkstra Strategy
-
-The algorithm stores candidate paths in a priority queue.
-
-Each queue element contains:
-
-```python
-(cost, node, path)
-```
-
-The node with the lowest cumulative cost is always expanded first.
-
-The first time the destination node is extracted from the queue, the corresponding path is guaranteed to be the shortest path.
+Priority zones receive a slightly smaller cost to encourage the algorithm to choose them whenever possible.
 
 ---
 
-## 3. Two Best Paths
+### Yen's Algorithm
 
-The simulator computes:
+Instead of relying on only one shortest path, Yen's algorithm computes the two best loopless paths.
 
-```text
-Path 1 = shortest path
-Path 2 = alternative path
-```
-
-The second path is generated by applying penalties to the edges of the first path and running Dijkstra again.
-
-This produces two good candidate routes.
-
-Example:
-
-```text
-Path 1:
-start → A → B → goal
-
-Path 2:
-start → C → D → goal
-```
+This allows the simulator to distribute drones over multiple routes when doing so decreases congestion.
 
 ---
 
-## 4. Drone Distribution
+## 3. Path Analysis
 
-Drones are distributed between the two paths according to:
+Each candidate path is analysed using four metrics:
 
-```text
-path cost
-+
-current load
-+
-restricted-zone penalties
-```
+- Total path cost
+- Bottleneck delay
+- Effective capacity
+- Path geometry
 
-This prevents all drones from being assigned to the same route.
+The effective capacity is defined as the minimum capacity among every zone and every connection belonging to the path.
+
+It estimates the maximum number of drones that can simultaneously progress through the entire path.
+
+---
+
+## 4. Drone Assignment Strategy
+
+When two valid paths exist:
+
+1. Both paths are analysed.
+2. Their estimated completion time is evaluated according to:
+   - travel cost,
+   - bottleneck delay,
+   - effective capacity.
+3. The algorithm computes how many drones should be assigned to each path.
+4. Drones are then alternately assigned to both paths to allow simultaneous progression from the beginning of the simulation.
+
+If only one path exists, all drones use that path.
 
 ---
 
@@ -249,167 +188,139 @@ This prevents all drones from being assigned to the same route.
 
 The scheduler executes the simulation turn by turn.
 
-At each turn it:
+It guarantees:
 
-1. Computes current occupancy.
-2. Checks capacities.
-3. Handles restricted travel.
-4. Executes valid moves.
-5. Makes blocked drones wait.
+- zone capacity constraints
+- connection capacity constraints
+- restricted movement
+- simultaneous drone movement
+- conflict avoidance
 
-### Occupancy
-
-The scheduler computes:
-
-```python
-occupancy[zone]
-```
-
-from the actual drone positions.
-
-### Zone Capacity
-
-A drone can enter a zone only if:
-
-```python
-occupancy < max_drones
-```
-
-### Edge Capacity
-
-A drone can traverse a connection only if:
-
-```python
-edge_usage < max_link_capacity
-```
-
-### Restricted Zones
-
-Restricted zones require two turns.
-
-Example:
-
-```text
-Turn 5:
-D1-A-R
-
-Turn 6:
-travelling
-
-Turn 7:
-D1-R
-```
-
----
-
-# Visual Representation
-
-The project includes a graphical visualization implemented using Pygame.
-
-Features:
-
-* graph rendering
-* colored hubs
-* connection display
-* drone display
-* turn counter
-* delivered drone counter
-* manual simulation stepping
-* autoplay mode
-
-Colors are taken directly from the map file.
-
-The visualization improves debugging and allows verification of:
-
-* capacities
-* path selection
-* drone congestion
-* restricted-zone behaviour
-
----
-
-# Example Input
-
-```text
-nb_drones: 2
-
-start_hub: start 0 0 [color=green]
-hub: A 1 0 [color=blue]
-end_hub: goal 2 0 [color=red]
-
-connection: start-A
-connection: A-goal
-```
-
----
-
-# Example Output
-
-```text
-D1-A
-D1-goal D2-A
-D2-goal
-```
-
-Meaning:
+Restricted zones require two turns:
 
 Turn 1:
 
-```text
-D1 moves to A
+```
+Source -------- Connection
 ```
 
 Turn 2:
 
-```text
-D1 reaches goal
-D2 moves to A
+```
+Connection -------- Restricted Zone
 ```
 
-Turn 3:
-
-```text
-D2 reaches goal
-```
+During transit the drone occupies the connection but not the destination zone.
 
 ---
 
 # Complexity
 
-## Dijkstra
+| Algorithm | Complexity |
+|-----------|-----------:|
+| Dijkstra | O((V + E) log V) |
+| Yen (2 paths) | Approximately 2 × Dijkstra |
+| Scheduler | O(D) per turn |
+
+Where:
+
+- V = number of zones
+- E = number of connections
+- D = number of drones
+
+---
+
+# Visual Representation
+
+The project includes a graphical interface built with Pygame.
+
+It displays:
+
+- graph topology
+- coloured zones
+- connection capacities
+- zone capacities
+- drone identifiers
+- drones travelling on connections
+- current simulation turn
+- delivered drones
+- manual and automatic execution modes
+
+Colours defined in the map are directly reflected in the visualization, making bottlenecks and zone types easy to identify during execution.
+
+---
+
+# Example
+
+Input:
 
 ```text
-O((V + E) log V)
+nb_drones: 2
+
+start_hub: start 0 0
+
+hub: A 1 0
+
+end_hub: goal 2 0
+
+connection: start-A
+
+connection: A-goal
 ```
 
-where:
-
-* V = number of zones
-* E = number of connections
-
-## Scheduler
-
-For each turn:
+Console output:
 
 ```text
-O(number_of_drones)
+D1-A D2-start
+D1-goal D2-A
+D2-goal
 ```
+
+The graphical interface simultaneously displays the drone positions for every turn.
 
 ---
 
 # Resources
 
-* Python Dataclasses Documentation
-* Python heapq Documentation
-* Python Pygame Documentation
-* Dijkstra Algorithm
-* Priority Queues and Graph Search
+## Documentation
 
-AI was used as an assistant for:
+- Python Documentation
+  https://docs.python.org/3/
 
-* architecture discussions
-* algorithm explanations
-* code reviews
-* debugging ideas
+- Pygame Documentation
+  https://www.pygame.org/docs/
 
-All implementation decisions and final code were understood and validated before integration.
+- Dijkstra Algorithm
+  https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+
+- Yen's K Shortest Paths Algorithm
+  https://en.wikipedia.org/wiki/Yen%27s_algorithm
+
+---
+
+## AI Usage
+
+AI was used as a development assistant throughout the project.
+
+It was primarily used for:
+
+- discussing algorithmic strategies,
+- reviewing code structure,
+- identifying corner cases,
+- improving the scheduling logic,
+- evaluating design choices,
+- refining the visualization.
+
+All generated suggestions were reviewed, adapted, tested, and integrated manually before being included in the project.
+
+---
+
+# Future Improvements
+
+Possible future optimizations include:
+
+- Dynamic rerouting during simulation.
+- More advanced scheduling heuristics.
+- Improved edge-capacity handling for multi-turn restricted movements.
+- Automatic graph scaling for very large maps.
+- Additional performance metrics and benchmarking tools.

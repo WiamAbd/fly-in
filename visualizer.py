@@ -264,7 +264,7 @@ class Visualizer:
                 True,
                 (0, 0, 0),
             )
-                    
+
             self.screen.blit(
                     label,
                     (
@@ -320,8 +320,8 @@ class Visualizer:
                     destination
                 )
 
-                x = (x1 + x2) //2
-                y = (y1 + y2) //2
+                x = (x1 + x2) // 2
+                y = (y1 + y2) // 2
 
                 color = (255, 255, 255)
 

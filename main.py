@@ -13,7 +13,7 @@ def main():
         sim = Simulator(graph)
         sim.run()
     except ValueError as e:
-        print("ERROR:",e)
+        print("ERROR:", e)
 
 
 if __name__ == "__main__":

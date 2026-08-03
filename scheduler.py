@@ -171,8 +171,6 @@ class Scheduler:
         ):
             return None
 
-
-
         zone = self.graph.zones[
             destination
         ]

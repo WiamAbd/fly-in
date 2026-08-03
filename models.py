@@ -1,8 +1,12 @@
+"""Data models used by the Fly-in simulator."""
+
 from dataclasses import dataclass, field
 
 
 @dataclass
 class Zone:
+    """Represents a zone of the graph."""
+
     name: str
     x: int
     y: int
@@ -13,6 +17,8 @@ class Zone:
 
 @dataclass
 class Connection:
+    """Represents a bidirectional connection between two zones."""
+
     source: str
     destination: str
     max_capacity: int = 1
@@ -20,10 +26,14 @@ class Connection:
 
 @dataclass
 class Graph:
+    """Represents the complete map used during the simulation."""
+
     drones: int = 0
     start: str = ""
     end: str = ""
 
-    zones: dict[str, Zone] = field(default_factory=lambda: {})
+    zones: dict[str, Zone] = field(default_factory=dict)
 
-    adj: dict[str, list[tuple[str, Connection]]] = field(default_factory=lambda: {})
+    adj: dict[str, list[tuple[str, Connection]]] = field(
+        default_factory=dict
+    )

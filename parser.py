@@ -1,3 +1,5 @@
+"""Parser for Fly-in map files."""
+
 import re
 
 from models import Graph, Zone, Connection
@@ -13,20 +15,22 @@ VALID_ZONE_TYPES = {
 VALID_ZONE_METADATA = {
     "color",
     "zone",
-    "max_drones"
+    "max_drones",
 
 }
 VALID_CONNECTION_METADATA = {
-    "max_link_capacity"
+    "max_link_capacity",
 }
 
 
 class MapParser:
+    """Parses a Fly-in map file into a Graph object."""
 
     def parse(self, filename: str) -> Graph:
+        """Parse a map file and return the corresponding graph."""
 
         graph = Graph()
-        seen_connections = set()
+        seen_connections: set[tuple[str, str]] = set()
         nb_drones_check = False
 
         with open(filename, "r", encoding="utf-8") as file:
@@ -103,21 +107,20 @@ class MapParser:
         line: str,
         graph: Graph,
     ) -> None:
+        """Parse a zone definition and add it to the graph."""
 
-        metadata = {}
+        metadata: dict[str, str] = {}
 
         meta_match = re.search(
             r"\[(.*?)\]",
             line,
         )
-        
 
         if meta_match:
-
-            if (line[meta_match.end():].strip()):
+            if line[meta_match.end():].strip():
                 raise ValueError(
-                "unexpected content after metadata"
-            )
+                    "unexpected content after metadata"
+                )
 
             metadata_text = meta_match.group(1)
 
@@ -152,10 +155,7 @@ class MapParser:
                 "invalid zone declaration"
             )
 
-        zone_kind = parts[0].replace(
-            ":",
-            "",
-        )
+        zone_kind = parts[0].rstrip(":")
 
         name = parts[1]
 
@@ -237,10 +237,11 @@ class MapParser:
         self,
         line: str,
         graph: Graph,
-        seen_connections: set,
+        seen_connections: set[tuple[str, str]],
     ) -> None:
+        """Parse a connection definition and add it to the graph."""
 
-        metadata = {}
+        metadata: dict[str, str] = {}
 
         meta_match = re.search(
             r"\[(.*?)\]",
@@ -305,14 +306,9 @@ class MapParser:
                 f"unknown zone '{destination}'"
             )
 
-        connection_key = tuple(
-            sorted(
-                (
-                    source,
-                    destination,
-                )
-            )
-        )
+        a, b = sorted((source, destination))
+
+        connection_key: tuple[str, str] = (a, b)
 
         if connection_key in seen_connections:
             raise ValueError(
@@ -365,7 +361,7 @@ class MapParser:
         self,
         graph: Graph,
     ) -> None:
-
+        """Validate that the parsed graph satisfies mandatory constraints."""
         if graph.drones <= 0:
             raise ValueError(
                 "missing nb_drones"

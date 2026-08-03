@@ -1,17 +1,32 @@
+PYTHON = python3
 
-run:
-	python main.py $(MAP)
+MAIN = main.py
+
+MAP ?= maps/easy/01_linear_path.txt
 
 install:
-	pip install flake8 mypy pygame
+	pip install pygame flake8 mypy
+
+run:
+	$(PYTHON) $(MAIN) $(MAP)
 
 debug:
-	python -m pdb main.py $(MAP)
+	$(PYTHON) -m pdb $(MAIN) $(MAP)
 
 clean:
-	rm -rf __pycache__
-	rm -rf .mypy_cache
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 
 lint:
 	flake8 .
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	mypy . \
+		--warn-return-any \
+		--warn-unused-ignores \
+		--ignore-missing-imports \
+		--disallow-untyped-defs \
+		--check-untyped-defs
+
+lint-strict:
+	flake8 .
+	mypy . --strict

@@ -2,15 +2,17 @@ from heapq import heappush, heappop
 from copy import deepcopy
 from visualizer import Visualizer
 from scheduler import Scheduler
-from models import Connection
 
 
 class Simulator:
+    """Simulate drone movements on the graph and manage pathfinding."""
 
     def __init__(self, graph):
+        """Initialize the simulator with the parsed graph."""
         self.graph = graph
 
     def zone_cost(self, zone_name):
+        """Return the movement cost associated with a zone."""
 
         zone = self.graph.zones[zone_name]
 
@@ -25,7 +27,9 @@ class Simulator:
 
         return 1
 
-    def dijkstra(self,graph, start, goal):
+    def dijkstra(self, graph, start, goal):
+        """Compute the shortest path between two zones
+         using Dijkstra's algorithm."""
 
         heap = [(0, start, [start])]
 
@@ -84,17 +88,15 @@ class Simulator:
 
         return float("inf"), []
 
-
     def path_cost(self, path):
+        """Compute the total movement cost of a path."""
         return sum(
             self.zone_cost(node)
             for node in path[1:]
         )
 
-
-
-    def yen_k_shortest_paths(self,graph, start, goal, k=2):
-
+    def yen_k_shortest_paths(self, graph, start, goal, k=2):
+        """Compute up to k shortest loopless paths using Yen's algorithm."""
         first_cost, first_path = self.dijkstra(graph, start, goal)
 
         if not first_path:
@@ -105,9 +107,7 @@ class Simulator:
 
         for _ in range(1, k):
 
-            
             _, previous_path = A[-1]
-                
 
             for spur_index in range(len(previous_path) - 1):
 
@@ -157,10 +157,6 @@ class Simulator:
                             if n != node
                         ]
 
-                
-
-                
-
                 _, spur_path = self.dijkstra(
                     temp_graph,
                     root_path[-1],
@@ -200,9 +196,9 @@ class Simulator:
 
         return A
 
-
     def analyze_path(self, path):
-
+        """Analyze a path and compute heuristic information for path
+        assignment."""
         bottleneck_delay = 1
 
         min_zone_capacity = float("inf")
@@ -255,6 +251,8 @@ class Simulator:
         path1,
         path2,
     ):
+        """Determine how many drones should be assigned to each
+        candidate path."""
 
         #
         # If second path is much worse,
@@ -316,8 +314,8 @@ class Simulator:
 
         return best_split
 
-    
     def create_drones(self):
+        """Create the drones and assign a path to each of them."""
 
         paths = self.yen_k_shortest_paths(
             self.graph,
@@ -406,7 +404,8 @@ class Simulator:
         return drones
 
     def run(self):
-
+        """Run the complete simulation until all drones
+        reach the destination."""
         drones = self.create_drones()
 
         scheduler = Scheduler(

@@ -5,8 +5,10 @@ class Visualizer:
 
     NODE_RADIUS = 22
 
-    GRID_X = 120
-    GRID_Y = 140
+    MIN_GRID_X = 60
+    MIN_GRID_Y = 70
+    MAX_GRID_X = 120
+    MAX_GRID_Y = 140
 
     COLORS = {
         "red": (220, 50, 50),
@@ -27,7 +29,10 @@ class Visualizer:
     def __init__(self, graph):
 
         pygame.init()
+        self.screen_info = pygame.display.Info()
 
+        self.screen_width = self.screen_info.current_w
+        self.screen_height = self.screen_info.current_h
         self.graph = graph
 
         self.auto_mode = False
@@ -76,44 +81,49 @@ class Visualizer:
             for i, y in enumerate(ys)
         }
 
-        graph_width = (
-            len(xs) - 1
-        ) * self.GRID_X
+        self.width = self.screen_width - 40
+        self.height = self.screen_height - 80
 
-        graph_height = (
-            len(ys) - 1
-        ) * self.GRID_Y
+        usable_width = self.width - 250
+        usable_height = self.height - 250
 
-        self.width = max(
-            1800,
-            graph_width + 500
+        cols = max(1, len(xs) - 1)
+        rows = max(1, len(ys) - 1)
+
+        self.grid_x = max(
+            self.MIN_GRID_X,
+            min(
+                self.MAX_GRID_X,
+                usable_width // cols,
+            ),
         )
 
-        self.height = max(
-            1200,
-            graph_height + 400
+        self.grid_y = max(
+            self.MIN_GRID_Y,
+            min(
+                self.MAX_GRID_Y,
+                usable_height // rows,
+            ),
         )
 
-        self.offset_x = (
-            self.width - graph_width
-        ) // 2
+        graph_width = cols * self.grid_x
+        graph_height = rows * self.grid_y
 
-        self.offset_y = (
-            self.height - graph_height
-        ) // 2
+        self.offset_x = (self.width - graph_width) // 2
+        self.offset_y = (self.height - graph_height) // 2
 
     def graph_position(self, zone):
 
         x = (
             self.offset_x
             + self.x_index[zone.x]
-            * self.GRID_X
+            * self.grid_x
         )
 
         y = (
             self.offset_y
             + self.y_index[zone.y]
-            * self.GRID_Y
+            * self.grid_y
         )
 
         return x, y

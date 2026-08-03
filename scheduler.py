@@ -35,6 +35,9 @@ class Scheduler:
             if drone["finished"]:
                 continue
 
+            if drone["travel_remaining"] > 0:
+                continue
+
             current_zone = drone["path"][
                 drone["position"]
             ]
@@ -109,17 +112,13 @@ class Scheduler:
                     drone["position"]
                 ]
 
-                if (
-                    destination
-                    == self.graph.end
-                ):
+                if destination == self.graph.end:
                     drone["finished"] = True
 
                 return (
                     drone["id"],
                     destination,
                 )
-
             return None
 
         current_idx = drone["position"]
@@ -172,10 +171,7 @@ class Scheduler:
         ):
             return None
 
-        occupancy[source] -= 1
-        occupancy[destination] += 1
 
-        edge_usage[edge] += 1
 
         zone = self.graph.zones[
             destination
@@ -184,21 +180,22 @@ class Scheduler:
         #
         # Restricted movement
         #
+        occupancy[source] -= 1
+
+        edge_usage[edge] += 1
+
         if zone.zone_type == "restricted":
 
             drone["travel_remaining"] = 1
 
-            #
-            # Reserve edge for next turn
-            #
-            self.edge_reservations[
-                edge
-            ] = 1
+            self.edge_reservations[edge] = 1
 
             return (
                 drone["id"],
                 f"{source}-{destination}",
             )
+
+        occupancy[destination] += 1
 
         drone["position"] += 1
 

@@ -1,10 +1,11 @@
+"""Turn-based scheduler for drone movement and conflict resolution."""
 from collections import defaultdict
 
 
 class Scheduler:
-
+    """Schedule drone movements while respecting movement constraints."""
     def __init__(self, graph):
-
+        """Initialize the scheduler for the given graph."""
         self.graph = graph
 
         #
@@ -13,6 +14,7 @@ class Scheduler:
         self.edge_reservations = defaultdict(int)
 
     def update_reservations(self):
+        """Update and remove expired edge reservations."""
 
         expired = []
 
@@ -27,6 +29,7 @@ class Scheduler:
             del self.edge_reservations[edge]
 
     def get_occupancy(self, drones):
+        """Compute the current occupancy of every zone."""
 
         occupancy = defaultdict(int)
 
@@ -47,6 +50,7 @@ class Scheduler:
         return occupancy
 
     def get_edge_usage(self):
+        """Initialize edge usage counters for the current turn."""
 
         return defaultdict(int)
 
@@ -55,6 +59,7 @@ class Scheduler:
         destination,
         occupancy,
     ):
+        """Check whether a drone may enter the destination zone."""
 
         if destination == self.graph.start:
             return True
@@ -75,6 +80,7 @@ class Scheduler:
         connection,
         edge_usage,
     ):
+        """Check whether a connection can be used this turn."""
 
         #
         # Persistent reservation
@@ -93,6 +99,7 @@ class Scheduler:
         occupancy,
         edge_usage,
     ):
+        """Attempt to move a drone according to the scheduling rules."""
 
         if drone["finished"]:
             return None
@@ -209,6 +216,7 @@ class Scheduler:
         self,
         drones,
     ):
+        """Execute one simulation turn for all drones."""
 
         self.update_reservations()
 

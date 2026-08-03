@@ -1,7 +1,9 @@
+"""Graphical visualization of the Fly-in drone simulation."""
 import pygame
 
 
 class Visualizer:
+    """Display the graph and drone movements using Pygame."""
 
     NODE_RADIUS = 22
 
@@ -27,6 +29,7 @@ class Visualizer:
     }
 
     def __init__(self, graph):
+        """Initialize the visualization window and graphical resources."""
 
         pygame.init()
         self.screen_info = pygame.display.Info()
@@ -56,6 +59,7 @@ class Visualizer:
         )
 
     def compute_layout(self):
+        """Compute the layout and scaling of the graph on the screen."""
 
         xs = sorted(
             {
@@ -113,6 +117,7 @@ class Visualizer:
         self.offset_y = (self.height - graph_height) // 2
 
     def graph_position(self, zone):
+        """Return the screen coordinates of a graph zone."""
 
         x = (
             self.offset_x
@@ -129,6 +134,7 @@ class Visualizer:
         return x, y
 
     def process_events(self):
+        """Handle window and keyboard events."""
 
         for event in pygame.event.get():
 
@@ -144,6 +150,7 @@ class Visualizer:
                 raise SystemExit
 
     def wait_for_next_turn(self):
+        """Wait for user input or continue automatically."""
 
         if self.auto_mode:
 
@@ -178,6 +185,7 @@ class Visualizer:
                     return
 
     def draw_edges(self):
+        """Draw all graph connections and their capacities."""
 
         drawn = set()
 
@@ -232,6 +240,7 @@ class Visualizer:
                 )
 
     def draw_nodes(self):
+        """Draw all graph zones and their labels."""
 
         for zone in self.graph.zones.values():
 
@@ -274,6 +283,7 @@ class Visualizer:
                 )
 
     def draw_drones(self, drones):
+        """Draw all drones at their current positions."""
 
         offsets = {}
 
@@ -400,6 +410,7 @@ class Visualizer:
         turn,
         drones,
     ):
+        """Render a complete simulation turn on the screen."""
 
         self.screen.fill(
             (240, 240, 240)

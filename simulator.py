@@ -2,16 +2,23 @@ from heapq import heappush, heappop
 from copy import deepcopy
 from visualizer import Visualizer
 from scheduler import Scheduler
+from models import Graph
 
 
 class Simulator:
     """Simulate drone movements on the graph and manage pathfinding."""
 
-    def __init__(self, graph):
+    def __init__(
+        self,
+        graph: Graph,
+    ) -> None:
         """Initialize the simulator with the parsed graph."""
         self.graph = graph
 
-    def zone_cost(self, zone_name):
+    def zone_cost(
+        self,
+        zone_name: str,
+    ) -> float:
         """Return the movement cost associated with a zone."""
 
         zone = self.graph.zones[zone_name]
@@ -27,13 +34,15 @@ class Simulator:
 
         return 1
 
-    def dijkstra(self, graph, start, goal):
+    def dijkstra(self, graph, start, goal) -> tuple[float, list[str]]:
         """Compute the shortest path between two zones
          using Dijkstra's algorithm."""
 
-        heap = [(0, start, [start])]
+        heap: list[tuple[float, str, list[str]]] = [
+            (0.0, start, [start])
+        ]
 
-        visited = {}
+        visited: dict[str, float] = {}
 
         while heap:
 
@@ -88,14 +97,23 @@ class Simulator:
 
         return float("inf"), []
 
-    def path_cost(self, path):
+    def path_cost(
+        self,
+        path: list[str],
+    ) -> float:
         """Compute the total movement cost of a path."""
         return sum(
             self.zone_cost(node)
             for node in path[1:]
         )
 
-    def yen_k_shortest_paths(self, graph, start, goal, k=2):
+    def yen_k_shortest_paths(
+        self,
+        graph: Graph,
+        start: str,
+        goal: str,
+        k: int = 2,
+    ) -> list[tuple[float, list[str]]]:
         """Compute up to k shortest loopless paths using Yen's algorithm."""
         first_cost, first_path = self.dijkstra(graph, start, goal)
 
@@ -103,7 +121,7 @@ class Simulator:
             return []
 
         A = [(first_cost, first_path)]
-        B = []
+        B: list[tuple[float, list[str]]] = []
 
         for _ in range(1, k):
 
@@ -196,7 +214,7 @@ class Simulator:
 
         return A
 
-    def analyze_path(self, path):
+    def analyze_path(self, path) -> dict:
         """Analyze a path and compute heuristic information for path
         assignment."""
         bottleneck_delay = 1
@@ -250,7 +268,7 @@ class Simulator:
         self,
         path1,
         path2,
-    ):
+    ) -> tuple[int, int]:
         """Determine how many drones should be assigned to each
         candidate path."""
 
@@ -314,7 +332,7 @@ class Simulator:
 
         return best_split
 
-    def create_drones(self):
+    def create_drones(self) -> list[dict]:
         """Create the drones and assign a path to each of them."""
 
         paths = self.yen_k_shortest_paths(
@@ -403,7 +421,7 @@ class Simulator:
 
         return drones
 
-    def run(self):
+    def run(self) -> None:
         """Run the complete simulation until all drones
         reach the destination."""
         drones = self.create_drones()

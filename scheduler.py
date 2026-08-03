@@ -1,19 +1,23 @@
 """Turn-based scheduler for drone movement and conflict resolution."""
 from collections import defaultdict
+from models import Graph, Connection
 
 
 class Scheduler:
     """Schedule drone movements while respecting movement constraints."""
-    def __init__(self, graph):
+    def __init__(self, graph: Graph) -> None:
         """Initialize the scheduler for the given graph."""
         self.graph = graph
 
         #
         # Persistent reservations
         #
-        self.edge_reservations = defaultdict(int)
+        self.edge_reservations: defaultdict[
+            tuple[str, str],
+            int,
+        ] = defaultdict(int)
 
-    def update_reservations(self):
+    def update_reservations(self) -> None:
         """Update and remove expired edge reservations."""
 
         expired = []
@@ -28,10 +32,13 @@ class Scheduler:
         for edge in expired:
             del self.edge_reservations[edge]
 
-    def get_occupancy(self, drones):
+    def get_occupancy(
+        self,
+        drones: list[dict],
+    ) -> defaultdict[str, int]:
         """Compute the current occupancy of every zone."""
 
-        occupancy = defaultdict(int)
+        occupancy: defaultdict[str, int] = defaultdict(int)
 
         for drone in drones:
 
@@ -49,16 +56,16 @@ class Scheduler:
 
         return occupancy
 
-    def get_edge_usage(self):
+    def get_edge_usage(self) -> defaultdict[tuple[str, str], int]:
         """Initialize edge usage counters for the current turn."""
 
         return defaultdict(int)
 
     def can_enter_zone(
         self,
-        destination,
-        occupancy,
-    ):
+        destination: str,
+        occupancy: defaultdict[str, int],
+    ) -> bool:
         """Check whether a drone may enter the destination zone."""
 
         if destination == self.graph.start:
@@ -76,10 +83,10 @@ class Scheduler:
 
     def can_use_edge(
         self,
-        edge,
-        connection,
-        edge_usage,
-    ):
+        edge: tuple[str, str],
+        connection: Connection,
+        edge_usage: defaultdict[tuple[str, str], int],
+    ) -> bool:
         """Check whether a connection can be used this turn."""
 
         #
@@ -95,10 +102,10 @@ class Scheduler:
 
     def move_drone(
         self,
-        drone,
-        occupancy,
-        edge_usage,
-    ):
+        drone: dict,
+        occupancy: defaultdict[str, int],
+        edge_usage: defaultdict[tuple[str, str], int],
+    ) -> tuple[int, str] | None:
         """Attempt to move a drone according to the scheduling rules."""
 
         if drone["finished"]:
@@ -214,8 +221,8 @@ class Scheduler:
 
     def schedule_turn(
         self,
-        drones,
-    ):
+        drones: list[dict],
+    ) -> list[tuple[int, str]]:
         """Execute one simulation turn for all drones."""
 
         self.update_reservations()

@@ -1,5 +1,6 @@
 """Graphical visualization of the Fly-in drone simulation."""
 import pygame
+from models import Graph, Zone
 
 
 class Visualizer:
@@ -28,7 +29,7 @@ class Visualizer:
         "none": (200, 200, 200),
     }
 
-    def __init__(self, graph):
+    def __init__(self, graph: Graph) -> None:
         """Initialize the visualization window and graphical resources."""
 
         pygame.init()
@@ -58,7 +59,7 @@ class Visualizer:
             14,
         )
 
-    def compute_layout(self):
+    def compute_layout(self) -> None:
         """Compute the layout and scaling of the graph on the screen."""
 
         xs = sorted(
@@ -116,7 +117,10 @@ class Visualizer:
         self.offset_x = (self.width - graph_width) // 2
         self.offset_y = (self.height - graph_height) // 2
 
-    def graph_position(self, zone):
+    def graph_position(
+        self,
+        zone: Zone,
+    ) -> tuple[int, int]:
         """Return the screen coordinates of a graph zone."""
 
         x = (
@@ -133,7 +137,7 @@ class Visualizer:
 
         return x, y
 
-    def process_events(self):
+    def process_events(self) -> None:
         """Handle window and keyboard events."""
 
         for event in pygame.event.get():
@@ -149,7 +153,7 @@ class Visualizer:
                 pygame.quit()
                 raise SystemExit
 
-    def wait_for_next_turn(self):
+    def wait_for_next_turn(self) -> None:
         """Wait for user input or continue automatically."""
 
         if self.auto_mode:
@@ -184,7 +188,10 @@ class Visualizer:
                 ):
                     return
 
-    def draw_edges(self):
+    def draw_drones(
+        self,
+        drones: list[dict],
+    ) -> None:
         """Draw all graph connections and their capacities."""
 
         drawn = set()
@@ -239,7 +246,7 @@ class Visualizer:
                     ),
                 )
 
-    def draw_nodes(self):
+    def draw_nodes(self) -> None:
         """Draw all graph zones and their labels."""
 
         for zone in self.graph.zones.values():
@@ -282,10 +289,10 @@ class Visualizer:
                     ),
                 )
 
-    def draw_drones(self, drones):
+    def draw_drones(self, drones) -> None:
         """Draw all drones at their current positions."""
 
-        offsets = {}
+        offsets: dict[str, int] = {}
 
         for drone in drones:
 
@@ -407,9 +414,9 @@ class Visualizer:
 
     def draw_turn(
         self,
-        turn,
-        drones,
-    ):
+        turn: int,
+        drones: list[dict],
+    ) -> None:
         """Render a complete simulation turn on the screen."""
 
         self.screen.fill(

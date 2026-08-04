@@ -188,13 +188,10 @@ class Visualizer:
                 ):
                     return
 
-    def draw_drones(
-        self,
-        drones: list[dict],
-    ) -> None:
+    def draw_edges(self) -> None:
         """Draw all graph connections and their capacities."""
 
-        drawn = set()
+        drawn: set[tuple[str, str]] = set()
 
         for source, neighbors in self.graph.adj.items():
 
@@ -204,14 +201,9 @@ class Visualizer:
 
             for destination, connection in neighbors:
 
-                edge = tuple(
-                    sorted(
-                        (
-                            source,
-                            destination,
-                        )
-                    )
-                )
+                a, b = sorted((source, destination))
+
+                edge: tuple[str, str] = (a, b)
 
                 if edge in drawn:
                     continue
@@ -282,14 +274,17 @@ class Visualizer:
             )
 
             self.screen.blit(
-                    label,
-                    (
-                        x - label.get_width() // 2,
-                        y - 42,
-                    ),
-                )
+                label,
+                (
+                    x - label.get_width() // 2,
+                    y - 42,
+                ),
+            )
 
-    def draw_drones(self, drones) -> None:
+    def draw_drones(
+        self,
+        drones: list[dict],
+    ) -> None:
         """Draw all drones at their current positions."""
 
         offsets: dict[str, int] = {}

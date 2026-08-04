@@ -1,6 +1,7 @@
 """Data models used by the Fly-in simulator."""
 
 from dataclasses import dataclass, field
+from typing import TypedDict
 
 
 @dataclass
@@ -37,3 +38,12 @@ class Graph:
     adj: dict[str, list[tuple[str, Connection]]] = field(
         default_factory=dict
     )
+
+
+class PathInfo(TypedDict):
+    """Stores heuristic information about a candidate path."""
+
+    cost: float
+    path: list[str]
+    bottleneck_delay: int
+    effective_capacity: float

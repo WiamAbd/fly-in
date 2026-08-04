@@ -2,7 +2,7 @@ from heapq import heappush, heappop
 from copy import deepcopy
 from visualizer import Visualizer
 from scheduler import Scheduler
-from models import Graph
+from models import Graph, PathInfo
 
 
 class Simulator:
@@ -34,7 +34,12 @@ class Simulator:
 
         return 1
 
-    def dijkstra(self, graph, start, goal) -> tuple[float, list[str]]:
+    def dijkstra(
+        self,
+        graph: Graph,
+        start: str,
+        goal: str,
+    ) -> tuple[float, list[str]]:
         """Compute the shortest path between two zones
          using Dijkstra's algorithm."""
 
@@ -214,7 +219,10 @@ class Simulator:
 
         return A
 
-    def analyze_path(self, path) -> dict:
+    def analyze_path(
+        self,
+        path: list[str],
+    ) -> PathInfo:
         """Analyze a path and compute heuristic information for path
         assignment."""
         bottleneck_delay = 1
@@ -266,8 +274,8 @@ class Simulator:
 
     def split_drones(
         self,
-        path1,
-        path2,
+        path1: PathInfo,
+        path2: PathInfo,
     ) -> tuple[int, int]:
         """Determine how many drones should be assigned to each
         candidate path."""

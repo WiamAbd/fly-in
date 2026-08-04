@@ -177,6 +177,16 @@ class MapParser:
                 "zone coordinates must be integers"
             )
 
+        for existing_zone in graph.zones.values():
+
+            if (
+                existing_zone.x == x
+                and existing_zone.y == y
+            ):
+                raise ValueError(
+                    f"duplicate coordinates ({x}, {y})"
+                )
+
         zone_type = metadata.get(
             "zone",
             "normal",

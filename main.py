@@ -1,3 +1,4 @@
+"""Entry point of the Fly-in simulator."""
 
 from parser import MapParser
 from simulator import Simulator
@@ -5,6 +6,7 @@ import sys
 
 
 def main() -> None:
+    """Parse the input map and start the simulation."""
     if len(sys.argv) != 2:
         print("Usage: python main.py <map_file>")
         return

@@ -125,12 +125,12 @@ class Simulator:
         if not first_path:
             return []
 
-        A = [(first_cost, first_path)]
-        B: list[tuple[float, list[str]]] = []
+        accepted_paths = [(first_cost, first_path)]
+        candidates: list[tuple[float, list[str]]] = []
 
         for _ in range(1, k):
 
-            _, previous_path = A[-1]
+            _, previous_path = accepted_paths[-1]
 
             for spur_index in range(len(previous_path) - 1):
 
@@ -142,7 +142,7 @@ class Simulator:
                 # Remove edges that would recreate
                 # an already accepted path
                 #
-                for _, accepted_path in A:
+                for _, accepted_path in accepted_paths:
 
                     if (
                         len(accepted_path) > spur_index
@@ -202,22 +202,22 @@ class Simulator:
                 )
 
                 existing_paths = (
-                    [path for _, path in A]
-                    + [path for _, path in B]
+                    [path for _, path in accepted_paths]
+                    + [path for _, path in candidates]
                 )
 
                 if total_path not in existing_paths:
                     heappush(
-                        B,
+                        candidates,
                         candidate,
                     )
 
-            if not B:
+            if not candidates:
                 break
 
-            A.append(heappop(B))
+            accepted_paths.append(heappop(candidates))
 
-        return A
+        return accepted_paths
 
     def analyze_path(
         self,
@@ -348,6 +348,10 @@ class Simulator:
             self.graph.start,
             self.graph.end,
         )
+        if not paths:
+            raise ValueError(
+                "no valid path exists between start_hub and end_hub"
+            )
 
         drones = []
 

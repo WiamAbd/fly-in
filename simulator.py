@@ -69,7 +69,7 @@ class Simulator:
             for (
                 neighbor,
                 _,
-            ) in graph.adj.get(
+            ) in graph.neighbors.get(
                 node,
                 [],
             ):
@@ -128,13 +128,13 @@ class Simulator:
         accepted_paths = [(first_cost, first_path)]
         candidates: list[tuple[float, list[str]]] = []
 
-        for _ in range(1, k):
+        for _ in range(k):
 
             _, previous_path = accepted_paths[-1]
 
             for spur_index in range(len(previous_path) - 1):
 
-                root_path = previous_path[: spur_index + 1]
+                prefix_path = previous_path[: spur_index + 1]
 
                 temp_graph = deepcopy(graph)
 
@@ -147,20 +147,20 @@ class Simulator:
                     if (
                         len(accepted_path) > spur_index
                         and accepted_path[: spur_index + 1]
-                        == root_path
+                        == prefix_path
                     ):
 
                         u = accepted_path[spur_index]
                         v = accepted_path[spur_index + 1]
 
-                        temp_graph.adj[u] = [
+                        temp_graph.neighbors[u] = [
                             (n, w)
-                            for n, w in temp_graph.adj[u]
+                            for n, w in temp_graph.neighbors[u]
                             if n != v
                         ]
-                        temp_graph.adj[v] = [
+                        temp_graph.neighbors[v] = [
                             (n, w)
-                            for n, w in temp_graph.adj[v]
+                            for n, w in temp_graph.neighbors[v]
                             if n != u
                         ]
 
@@ -168,21 +168,21 @@ class Simulator:
                 # Remove nodes of the root path
                 # except the spur node
                 #
-                for node in root_path[:-1]:
+                for node in prefix_path[:-1]:
 
-                    temp_graph.adj.pop(node, None)
+                    temp_graph.neighbors.pop(node, None)
 
-                    for key in temp_graph.adj:
+                    for key in temp_graph.neighbors:
 
-                        temp_graph.adj[key] = [
+                        temp_graph.neighbors[key] = [
                             (n, w)
-                            for n, w in temp_graph.adj[key]
+                            for n, w in temp_graph.neighbors[key]
                             if n != node
                         ]
 
                 _, spur_path = self.dijkstra(
                     temp_graph,
-                    root_path[-1],
+                    prefix_path[-1],
                     goal,
                 )
 
@@ -190,7 +190,7 @@ class Simulator:
                     continue
 
                 total_path = (
-                    root_path[:-1]
+                    prefix_path[:-1]
                     + spur_path
                 )
 
@@ -249,7 +249,7 @@ class Simulator:
             source = path[i - 1]
             destination = path[i]
 
-            for neigh, connection in self.graph.adj[source]:
+            for neigh, connection in self.graph.neighbors[source]:
 
                 if neigh == destination:
 

@@ -193,7 +193,7 @@ class Visualizer:
 
         drawn: set[tuple[str, str]] = set()
 
-        for source, neighbors in self.graph.adj.items():
+        for source, neighbors in self.graph.neighbors.items():
 
             zone1 = self.graph.zones[source]
 

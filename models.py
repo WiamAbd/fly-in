@@ -14,6 +14,7 @@ class Zone:
     zone_type: str = "normal"
     color: str = "none"
     max_drones: int = 1
+    cost: float = 1
 
 
 @dataclass
@@ -35,7 +36,7 @@ class Graph:
 
     zones: dict[str, Zone] = field(default_factory=dict)
 
-    adj: dict[str, list[tuple[str, Connection]]] = field(
+    neighbors: dict[str, list[tuple[str, Connection]]] = field(
         default_factory=dict
     )
 

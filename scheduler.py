@@ -154,7 +154,7 @@ class Scheduler:
 
         connection = None
 
-        for neigh, conn in self.graph.adj[source]:
+        for neigh, conn in self.graph.neighbors[source]:
 
             if neigh == destination:
                 connection = conn

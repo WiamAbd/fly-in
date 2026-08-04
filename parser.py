@@ -347,7 +347,7 @@ class MapParser:
             max_capacity=max_capacity,
         )
 
-        graph.adj.setdefault(
+        graph.neighbors.setdefault(
             source,
             [],
         ).append(
@@ -357,7 +357,7 @@ class MapParser:
             )
         )
 
-        graph.adj.setdefault(
+        graph.neighbors.setdefault(
             destination,
             [],
         ).append(

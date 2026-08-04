@@ -235,7 +235,7 @@ class Simulator:
             zone = self.graph.zones[path[i]]
 
             if zone.zone_type == "restricted":
-                restricted_delay = 2
+                restricted_delay += 1
 
             if path[i] not in (
                 self.graph.start,
@@ -284,14 +284,18 @@ class Simulator:
         # If second path is much worse,
         # ignore it.
         #
-        if path2["cost"] > path1["cost"] + 5:
-
-            return (
-                self.graph.drones,
-                0,
-            )
 
         total = self.graph.drones
+
+        if (
+            path2["cost"] > path1["cost"] + (total-1)
+            / path1["effective_capacity"]
+        ):
+
+            return (
+                total,
+                0,
+            )
 
         best_finish = float("inf")
 
@@ -312,6 +316,7 @@ class Simulator:
                     - path1["effective_capacity"],
                 )
                 * path1["restricted_delay"]
+                / path1["effective_capacity"]
             )
 
             finish_p2 = (
@@ -322,6 +327,7 @@ class Simulator:
                     - path2["effective_capacity"],
                 )
                 * path2["restricted_delay"]
+                / path2["effective_capacity"]
             )
 
             finish = max(

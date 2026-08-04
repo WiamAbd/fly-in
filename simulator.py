@@ -189,16 +189,16 @@ class Simulator:
                 if not spur_path:
                     continue
 
-                total_path = (
+                candidate_path = (
                     prefix_path[:-1]
                     + spur_path
                 )
 
-                total_cost = self.path_cost(total_path)
+                candidate_cost = self.path_cost(candidate_path)
 
                 candidate = (
-                    total_cost,
-                    total_path,
+                    candidate_cost,
+                    candidate_path,
                 )
 
                 existing_paths = (
@@ -206,7 +206,7 @@ class Simulator:
                     + [path for _, path in candidates]
                 )
 
-                if total_path not in existing_paths:
+                if candidate_path not in existing_paths:
                     heappush(
                         candidates,
                         candidate,
@@ -225,7 +225,7 @@ class Simulator:
     ) -> PathInfo:
         """Analyze a path and compute heuristic information for path
         assignment."""
-        bottleneck_delay = 1
+        restricted_delay = 1
 
         min_zone_capacity = float("inf")
         min_edge_capacity = float("inf")
@@ -235,7 +235,7 @@ class Simulator:
             zone = self.graph.zones[path[i]]
 
             if zone.zone_type == "restricted":
-                bottleneck_delay = 2
+                restricted_delay = 2
 
             if path[i] not in (
                 self.graph.start,
@@ -268,7 +268,7 @@ class Simulator:
         return {
             "cost": self.path_cost(path),
             "path": path,
-            "bottleneck_delay": bottleneck_delay,
+            "restricted_delay": restricted_delay,
             "effective_capacity": effective_capacity,
         }
 
@@ -311,7 +311,7 @@ class Simulator:
                     drones_p1
                     - path1["effective_capacity"],
                 )
-                * path1["bottleneck_delay"]
+                * path1["restricted_delay"]
             )
 
             finish_p2 = (
@@ -321,7 +321,7 @@ class Simulator:
                     drones_p2
                     - path2["effective_capacity"],
                 )
-                * path2["bottleneck_delay"]
+                * path2["restricted_delay"]
             )
 
             finish = max(

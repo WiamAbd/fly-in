@@ -46,5 +46,5 @@ class PathInfo(TypedDict):
 
     cost: float
     path: list[str]
-    bottleneck_delay: int
+    restricted_delay: int
     effective_capacity: float

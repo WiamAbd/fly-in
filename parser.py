@@ -30,7 +30,7 @@ class MapParser:
         """Parse a map file and return the corresponding graph."""
 
         graph = Graph()
-        seen_connections: set[tuple[str, str]] = set()
+        # seen_connections: set[tuple[str, str]] = set()
         nb_drones_check = False
 
         with open(filename, "r", encoding="utf-8") as file:
@@ -73,18 +73,15 @@ class MapParser:
                         or line.startswith("hub:")
                     ):
 
-                        self._parse_zone(
+                        self.parse_zone(
                             line,
                             graph,
+                            graph.drones,
                         )
 
                     elif line.startswith("connection:"):
 
-                        self._parse_connection(
-                            line,
-                            graph,
-                            seen_connections,
-                        )
+                        self.parse_connection(line, graph)
 
                     else:
 
@@ -98,14 +95,15 @@ class MapParser:
                         f"Line {line_num + 1}: {exc}"
                     ) from exc
 
-        self._validate_graph(graph)
+        self.validate_graph(graph)
 
         return graph
 
-    def _parse_zone(
+    def parse_zone(
         self,
         line: str,
         graph: Graph,
+        nbr_drones: int
     ) -> None:
         """Parse a zone definition and add it to the graph."""
 
@@ -209,8 +207,8 @@ class MapParser:
             )
         )
 
-        if name in ("start", "goal"):
-            max_drones = 1
+        if zone_kind in ("start_hub", "end_hub"):
+            max_drones = nbr_drones
 
         if max_drones <= 0:
             raise ValueError(
@@ -246,12 +244,7 @@ class MapParser:
 
             graph.end = name
 
-    def _parse_connection(
-        self,
-        line: str,
-        graph: Graph,
-        seen_connections: set[tuple[str, str]],
-    ) -> None:
+    def parse_connection(self, line: str, graph: Graph) -> None:
         """Parse a connection definition and add it to the graph."""
 
         metadata: dict[str, str] = {}
@@ -323,14 +316,10 @@ class MapParser:
 
         connection_key: tuple[str, str] = (a, b)
 
-        if connection_key in seen_connections:
+        if connection_key in graph.connections:
             raise ValueError(
                 f"duplicate connection {source}-{destination}"
             )
-
-        seen_connections.add(
-            connection_key
-        )
 
         max_capacity = int(
             metadata.get(
@@ -349,6 +338,7 @@ class MapParser:
             destination=destination,
             max_capacity=max_capacity,
         )
+        graph.connections[connection_key] = connection
 
         graph.neighbors.setdefault(
             source,
@@ -370,7 +360,7 @@ class MapParser:
             )
         )
 
-    def _validate_graph(
+    def validate_graph(
         self,
         graph: Graph,
     ) -> None:

@@ -46,9 +46,7 @@ class Scheduler:
             if drone["on_connection"]:
                 source = drone["path"][drone["position"]]
                 destination = drone["path"][drone["position"]+1]
-                edge = tuple(
-                    sorted((source, destination))
-                )
+                edge = tuple(sorted((source, destination)))
                 edge_usage[edge] += 1
 
         return edge_usage
@@ -99,10 +97,7 @@ class Scheduler:
         edge = tuple(sorted((source, destination)))
         zone = self.graph.zones[destination]
 
-        for neigh, conn in self.graph.neighbors[source]:
-            if neigh == destination:
-                connection = conn
-                break
+        connection = self.graph.connections[edge]
 
         if drone["on_connection"]:
 
@@ -181,5 +176,16 @@ class Scheduler:
 
             if result:
                 moves.append(result)
+
+        # l=[]
+        # for i,j in self.graph.zones.items():
+
+        #     max= j.max_drones
+        #     ocup = occupancy[i]
+        #     l.append(f"{i}: {ocup}/{max}")
+
+        # print(" ".join(x for x in l))
+
+        # for i,j in self.graph.neighbors.items():
 
         return moves

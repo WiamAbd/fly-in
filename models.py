@@ -35,6 +35,10 @@ class Graph:
     end: str = ""
 
     zones: dict[str, Zone] = field(default_factory=dict)
+    connections: dict[
+        tuple[str, str],
+        Connection,
+    ] = field(default_factory=dict)
 
     neighbors: dict[str, list[tuple[str, Connection]]] = field(
         default_factory=dict

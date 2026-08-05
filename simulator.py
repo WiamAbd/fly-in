@@ -248,17 +248,14 @@ class Simulator:
 
             source = path[i - 1]
             destination = path[i]
+            a, b = sorted((source, destination))
+            edge: tuple[str, str] = (a, b)
+            connection = self.graph.connections[edge]
 
-            for neigh, connection in self.graph.neighbors[source]:
-
-                if neigh == destination:
-
-                    min_edge_capacity = min(
-                        min_edge_capacity,
-                        connection.max_capacity,
-                    )
-
-                    break
+            min_edge_capacity = min(
+                min_edge_capacity,
+                connection.max_capacity,
+            )
 
         effective_capacity = min(
             min_zone_capacity,

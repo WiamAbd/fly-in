@@ -452,9 +452,6 @@ class Simulator:
             self.graph
         )
 
-        #
-        # Initial state
-        #
         visualizer.draw_turn(
             0,
             drones,

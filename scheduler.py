@@ -33,6 +33,26 @@ class Scheduler:
 
         return occupancy
 
+    def get_edge_usage(
+        self,
+        drones: list[dict],
+    ) -> defaultdict[tuple[str, str], int]:
+        """Compute the current usage of every edge."""
+        edge_usage: defaultdict[
+                    tuple[str, str],
+                    int,
+                ] = defaultdict(int)
+        for drone in drones:
+            if drone["on_connection"]:
+                source = drone["path"][drone["position"]]
+                destination = drone["path"][drone["position"]+1]
+                edge = tuple(
+                    sorted((source, destination))
+                )
+                edge_usage[edge] += 1
+
+        return edge_usage
+
     def can_enter_zone(
         self,
         destination: str,
@@ -74,13 +94,24 @@ class Scheduler:
         if drone["finished"]:
             return None
 
+        destination = drone["path"][drone["position"]+1]
+        source = drone["path"][drone["position"]]
+        edge = tuple(sorted((source, destination)))
+        zone = self.graph.zones[destination]
+
+        for neigh, conn in self.graph.neighbors[source]:
+            if neigh == destination:
+                connection = conn
+                break
+
         if drone["on_connection"]:
-            destination = drone["path"][drone["position"]+1]
 
             if self.can_enter_zone(destination, occupancy):
                 drone["on_connection"] = False
 
                 drone["position"] += 1
+                occupancy[destination] += 1
+                edge_usage[edge] -= 1
 
                 if destination == self.graph.end:
                     drone["finished"] = True
@@ -91,49 +122,6 @@ class Scheduler:
                 )
             return None
 
-        current_idx = drone["position"]
-
-        if (
-            current_idx
-            >= len(drone["path"]) - 1
-        ):
-            drone["finished"] = True
-            return None
-
-        source = drone["path"][
-            current_idx
-        ]
-
-        destination = drone["path"][
-            current_idx + 1
-        ]
-
-        connection = None
-
-        for neigh, conn in self.graph.neighbors[source]:
-
-            if neigh == destination:
-                connection = conn
-                break
-
-        if connection is None:
-            return None
-
-        edge = tuple(
-            sorted(
-                (
-                    source,
-                    destination,
-                )
-            )
-        )
-
-        if not self.can_enter_zone(
-            destination,
-            occupancy,
-        ):
-            return None
-
         if not self.can_use_edge(
             edge,
             connection,
@@ -141,28 +129,26 @@ class Scheduler:
         ):
             return None
 
-        zone = self.graph.zones[
-            destination
-        ]
-
-        #
-        # Restricted movement
-        #
-        occupancy[source] -= 1
-
-        edge_usage[edge] += 1
-
         if zone.zone_type == "restricted":
 
             drone["on_connection"] = True
+            edge_usage[edge] += 1
+            occupancy[source] -= 1
 
             return (
                 drone["id"],
                 f"{source}-{destination}",
             )
 
-        occupancy[destination] += 1
+        if not self.can_enter_zone(
+            destination,
+            occupancy,
+        ):
+            return None
 
+        edge_usage[edge] += 1
+        occupancy[source] -= 1
+        occupancy[destination] += 1
         drone["position"] += 1
 
         if destination == self.graph.end:
@@ -179,14 +165,9 @@ class Scheduler:
     ) -> list[tuple[int, str]]:
         """Execute one simulation turn for all drones."""
 
-        occupancy = self.get_occupancy(
-            drones
-        )
+        occupancy = self.get_occupancy(drones)
 
-        edge_usage: defaultdict[
-            tuple[str, str],
-            int,
-        ] = defaultdict(int)
+        edge_usage = self.get_edge_usage(drones)
 
         moves = []
 

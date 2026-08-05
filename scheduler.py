@@ -81,7 +81,6 @@ class Scheduler:
                 drone["on_connection"] = False
 
                 drone["position"] += 1
-                occupancy[destination] += 1
 
                 if destination == self.graph.end:
                     drone["finished"] = True

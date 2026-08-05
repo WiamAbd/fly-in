@@ -191,52 +191,40 @@ class Visualizer:
     def draw_edges(self) -> None:
         """Draw all graph connections and their capacities."""
 
-        drawn: set[tuple[str, str]] = set()
+        for edge, connection in self.graph.connections.items():
 
-        for source, neighbors in self.graph.neighbors.items():
+            source, destination = edge
 
             zone1 = self.graph.zones[source]
+            zone2 = self.graph.zones[destination]
 
             x1, y1 = self.graph_position(zone1)
+            x2, y2 = self.graph_position(zone2)
 
-            for destination, connection in neighbors:
+            pygame.draw.line(
+                self.screen,
+                (120, 120, 120),
+                (x1, y1),
+                (x2, y2),
+                2,
+            )
 
-                a, b = sorted((source, destination))
+            mid_x = (x1 + x2) // 2
+            mid_y = (y1 + y2) // 2
 
-                edge: tuple[str, str] = (a, b)
+            capacity = self.font.render(
+                f"{connection.max_capacity}",
+                True,
+                (0, 0, 255),
+            )
 
-                if edge in drawn:
-                    continue
-
-                drawn.add(edge)
-
-                zone2 = self.graph.zones[destination]
-
-                x2, y2 = self.graph_position(zone2)
-
-                pygame.draw.line(
-                    self.screen,
-                    (120, 120, 120),
-                    (x1, y1),
-                    (x2, y2),
-                    2,
-                )
-                mid_x = (x1 + x2) // 2
-                mid_y = (y1 + y2) // 2
-
-                capacity = self.font.render(
-                    f"{connection.max_capacity}",
-                    True,
-                    (0, 0, 255),
-                )
-
-                self.screen.blit(
-                    capacity,
-                    (
-                        mid_x - capacity.get_width() // 2,
-                        mid_y - capacity.get_height() // 2,
-                    ),
-                )
+            self.screen.blit(
+                capacity,
+                (
+                    mid_x - capacity.get_width() // 2,
+                    mid_y - capacity.get_height() // 2,
+                ),
+            )
 
     def draw_nodes(self) -> None:
         """Draw all graph zones and their labels."""

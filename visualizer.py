@@ -138,7 +138,7 @@ class Visualizer:
         return x, y
 
     def process_events(self) -> None:
-        """Handle window and keyboard events."""
+        """Handle window and keyboard events related to quit."""
 
         for event in pygame.event.get():
 

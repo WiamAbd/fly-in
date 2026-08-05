@@ -302,7 +302,7 @@ class Visualizer:
 
                 color = (0, 220, 0)
 
-            elif drone["travel_remaining"] > 0:
+            elif drone["on_connection"] > 0:
 
                 source_name = drone["path"][
                     drone["position"]

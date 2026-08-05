@@ -377,7 +377,7 @@ class Simulator:
                     {
                         "id": drone_id,
                         "position": 0,
-                        "travel_remaining": 0,
+                        "on_connection": 0,
                         "finished": False,
                         "path": path,
                     }
@@ -413,7 +413,7 @@ class Simulator:
                     {
                         "id": drone_id,
                         "position": 0,
-                        "travel_remaining": 0,
+                        "on_connection": 0,
                         "finished": False,
                         "path": path1["path"],
                     }
@@ -428,7 +428,7 @@ class Simulator:
                     {
                         "id": drone_id,
                         "position": 0,
-                        "travel_remaining": 0,
+                        "on_connection": 0,
                         "finished": False,
                         "path": path2["path"],
                     }

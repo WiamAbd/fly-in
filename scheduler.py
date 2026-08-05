@@ -9,29 +9,6 @@ class Scheduler:
         """Initialize the scheduler for the given graph."""
         self.graph = graph
 
-        #
-        # Persistent reservations
-        #
-        self.edge_reservations: defaultdict[
-            tuple[str, str],
-            int,
-        ] = defaultdict(int)
-
-    def update_reservations(self) -> None:
-        """Update and remove expired edge reservations."""
-
-        expired = []
-
-        for edge in self.edge_reservations:
-
-            self.edge_reservations[edge] -= 1
-
-            if self.edge_reservations[edge] <= 0:
-                expired.append(edge)
-
-        for edge in expired:
-            del self.edge_reservations[edge]
-
     def get_occupancy(
         self,
         drones: list[dict],
@@ -45,7 +22,7 @@ class Scheduler:
             if drone["finished"]:
                 continue
 
-            if drone["travel_remaining"] > 0:
+            if drone["on_connection"] > 0:
                 continue
 
             current_zone = drone["path"][
@@ -56,20 +33,12 @@ class Scheduler:
 
         return occupancy
 
-    def get_edge_usage(self) -> defaultdict[tuple[str, str], int]:
-        """Initialize edge usage counters for the current turn."""
-
-        return defaultdict(int)
-
     def can_enter_zone(
         self,
         destination: str,
         occupancy: defaultdict[str, int],
     ) -> bool:
         """Check whether a drone may enter the destination zone."""
-
-        if destination == self.graph.start:
-            return True
 
         if destination == self.graph.end:
             return True
@@ -88,12 +57,6 @@ class Scheduler:
         edge_usage: defaultdict[tuple[str, str], int],
     ) -> bool:
         """Check whether a connection can be used this turn."""
-
-        #
-        # Persistent reservation
-        #
-        if edge in self.edge_reservations:
-            return False
 
         return (
             edge_usage[edge]
@@ -114,11 +77,11 @@ class Scheduler:
         #
         # Currently travelling
         #
-        if drone["travel_remaining"] > 0:
+        if drone["on_connection"] > 0:
 
-            drone["travel_remaining"] -= 1
+            drone["on_connection"] -= 1
 
-            if drone["travel_remaining"] == 0:
+            if drone["on_connection"] == 0:
 
                 drone["position"] += 1
 
@@ -198,9 +161,7 @@ class Scheduler:
 
         if zone.zone_type == "restricted":
 
-            drone["travel_remaining"] = 1
-
-            self.edge_reservations[edge] = 1
+            drone["on_connection"] = 1
 
             return (
                 drone["id"],
@@ -225,13 +186,14 @@ class Scheduler:
     ) -> list[tuple[int, str]]:
         """Execute one simulation turn for all drones."""
 
-        self.update_reservations()
-
         occupancy = self.get_occupancy(
             drones
         )
 
-        edge_usage = self.get_edge_usage()
+        edge_usage: defaultdict[
+            tuple[str, str],
+            int,
+        ] = defaultdict(int)
 
         moves = []
 

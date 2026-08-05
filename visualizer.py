@@ -205,8 +205,7 @@ class Visualizer:
                 self.screen,
                 (120, 120, 120),
                 (x1, y1),
-                (x2, y2),
-                2,
+                (x2, y2)
             )
 
             mid_x = (x1 + x2) // 2

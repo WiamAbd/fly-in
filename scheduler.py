@@ -19,9 +19,6 @@ class Scheduler:
 
         for drone in drones:
 
-            if drone["finished"]:
-                continue
-
             if drone["on_connection"]:
                 continue
 
@@ -176,16 +173,5 @@ class Scheduler:
 
             if result:
                 moves.append(result)
-
-        # l=[]
-        # for i,j in self.graph.zones.items():
-
-        #     max= j.max_drones
-        #     ocup = occupancy[i]
-        #     l.append(f"{i}: {ocup}/{max}")
-
-        # print(" ".join(x for x in l))
-
-        # for i,j in self.graph.neighbors.items():
 
         return moves

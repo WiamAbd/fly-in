@@ -209,6 +209,9 @@ class MapParser:
             )
         )
 
+        if name in ("start", "goal"):
+            max_drones = 1
+
         if max_drones <= 0:
             raise ValueError(
                 "max_drones must be positive"

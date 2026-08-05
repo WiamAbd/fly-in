@@ -22,7 +22,7 @@ class Scheduler:
             if drone["finished"]:
                 continue
 
-            if drone["on_connection"] > 0:
+            if drone["on_connection"]:
                 continue
 
             current_zone = drone["path"][
@@ -74,20 +74,14 @@ class Scheduler:
         if drone["finished"]:
             return None
 
-        #
-        # Currently travelling
-        #
-        if drone["on_connection"] > 0:
+        if drone["on_connection"]:
+            destination = drone["path"][drone["position"]+1]
 
-            drone["on_connection"] -= 1
-
-            if drone["on_connection"] == 0:
+            if self.can_enter_zone(destination, occupancy):
+                drone["on_connection"] = False
 
                 drone["position"] += 1
-
-                destination = drone["path"][
-                    drone["position"]
-                ]
+                occupancy[destination] += 1
 
                 if destination == self.graph.end:
                     drone["finished"] = True
@@ -161,7 +155,7 @@ class Scheduler:
 
         if zone.zone_type == "restricted":
 
-            drone["on_connection"] = 1
+            drone["on_connection"] = True
 
             return (
                 drone["id"],
